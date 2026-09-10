@@ -1,8 +1,8 @@
-### Project 1: Multi-OS Home Lab (Building My SOC Home Lab)
+### Project 1: Project 1: Multi-OS SOC Home Lab — SIEM Deployment 
 
 ### 🎯 Project Objectives
 
-The core objective of this project is to build a functional, isolated enterprise-grade laboratory network to engineering and validate a robust **SIEM and Threat Detection Pipeline**.
+The core objective of this project is to build a functional, isolated enterprise-style laboratory network to engineer and validate a robust **SIEM and Threat Detection Pipeline**.
 
 This lab was designed to meet the following specific technical goals:
 1.  **Isolate** a multi-vendor environment within Oracle VirtualBox (Windows 11, Server 2022, Ubuntu, Kali Linux).
