@@ -1,4 +1,4 @@
-### Project 1: Project 1: Multi-OS SOC Home Lab — SIEM Deployment 
+### Project 1: Project 1: Multi-OS SOC Home Lab 
 
 ### 🎯 Project Objectives
 
