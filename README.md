@@ -1,4 +1,4 @@
-### Project 1: Multi-OS Home Lab Architecture & SIEM Telemetry Pipeline
+### Project 1: Multi-OS Home Lab (Building My SOC Home Lab)
 
 ### 🎯 Project Objectives
 
