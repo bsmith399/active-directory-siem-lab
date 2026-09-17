@@ -39,15 +39,16 @@ Build an isolated Active Directory domain environment, implement baseline GPO se
 
 ## 📸 Evidence Gallery
 
+## 📸 Evidence Gallery
+
 | Ref | Verification Artifact | Key Telemetry / Configuration | Preview |
 | :---: | :--- | :--- | :---: |
 | **01** | **GPO Hardening Baseline** | Enforced Account Lockout Policy | ![Account Lockout Policy](screenshots/01-account-lockout-policy.png) |
 | **02** | **Account Protection** | Privileged accounts (dtorres, esingh) in Protected Users | ![Protected Users](screenshots/02-protected-users.png) |
-| **03** | **Advanced Audit Policy** | Enabled Success/Failure auditing via auditpol| ![Audit Policy](screenshots/03-audit-policy.png) |
-| **04** | **SIEM Telemetry Pipeline** | Wazuh Windows Agent active connection over TCP 1514 | ![Wazuh Agent Status](screenshots/04-agent-status.png) |
-| **05** | **Log Ingestion Validation** | Captured Windows Event IDs 4720 and 4726 | ![Log Ingestion Validation](screenshots/05-log-ingestion.png) |
-| **06** | **Custom Detection Rule** | Level 12 Wazuh Rule 100010 in local_rules.xml | ![Local Rules XML](screenshots/06-local-rules-xml.png) |
-| **07** | **Lab State Preservation** | VirtualBox baseline snapshot (DC-01-Hardened-Monitored) | ![VirtualBox Snapshot](screenshots/07-vm-snapshot.png) |
+| **03** | **Advanced Audit Policy** | Enabled Success/Failure auditing via auditpol | ![Audit Policy](screenshots/03-audit-policy.png) |
+| **04** | **Log Ingestion Validation** | Captured Windows Event IDs 4720 and 4726 | ![Log Ingestion Validation](screenshots/04-log-ingestion.png) |
+| **05** | **Custom Detection Rule** | Level 12 Wazuh Rule 100010 in local_rules.xml | ![Local Rules XML](screenshots/05-local-rules-xml.png) |
+| **06** | **Lab State Preservation** | VirtualBox baseline snapshot (DC-01-Hardened-Monitored) | ![VirtualBox Snapshot](screenshots/06-vm-snapshot.png) |
 ---
 
 ## 👤 Author
