@@ -5,28 +5,28 @@ Build an isolated Active Directory domain environment, implement baseline GPO se
 
 ## Step-by-Step Instructions
 
-1. **Set up the virtual lab environment and domain architecture** by configuring host-only and NAT network adapters in Oracle VM VirtualBox for a `192.168.1.0/24` subnet. Install Windows Server 2022 on **DC-01** to promote it as a Domain Controller running Active Directory Domain Services (AD DS), and set up Kali Linux to host the centralized Wazuh SIEM stack (Wazuh Manager, Indexer, and Dashboard).
+1. **Set up the virtual lab environment and domain architecture** by configuring host-only and NAT network adapters in Oracle VM VirtualBox for a 192.168.1.0/24 subnet. Install Windows Server 2022 on DC-01 to promote it as a Domain Controller running Active Directory Domain Services (AD DS), and set up Kali Linux to host the centralized Wazuh SIEM stack (Wazuh Manager, Indexer, and Dashboard).
 
-2. **Implement Active Directory security hardening baselines** by launching the Group Policy Management Console (`gpmc.msc`) on DC-01 and enforcing a `10 / 15 / 15` Account Lockout Policy (10 invalid attempts, 15-minute duration, 15-minute reset). Open Active Directory Users and Computers (`dsa.msc`) and add privileged administrative accounts (`dtorres`, `esingh`) to the **Protected Users** security group to eliminate legacy NTLM fallback and cached credential dumping risks.
+2. **Implement Active Directory security hardening baselines** by launching the Group Policy Management Console (gpmc.msc) on DC-01 and enforcing a  10/15/15 Account Lockout Policy (10 invalid attempts, 15-minute duration, 15-minute reset). Open Active Directory Users and Computers (dsa.msc) and add privileged administrative accounts (dtorres, esingh) to the **Protected Users** security group to eliminate legacy NTLM fallback and cached credential dumping risks.
 
-3. **Configure Windows Advanced Audit Policies** using administrative PowerShell on DC-01. Execute `auditpol /set /subcategory:"User Account Management" /success:enable /failure:enable` to capture identity lifecycle operations, and run `auditpol /get /category:*` to verify that active auditing is successfully enabled across user management categories.
+3. **Configure Windows Advanced Audit Policies** using administrative PowerShell on DC-01. Execute auditpol /set /subcategory:"User Account Management" /success:enable /failure:enable to capture identity lifecycle operations, and run `auditpol /get /category: to verify that active auditing is successfully enabled across user management categories.
 
-4. **Establish the Wazuh SIEM telemetry pipeline** by deploying the Wazuh Windows Agent on DC-01. Modify `C:\Program Files (x86)\ossec-agent\ossec.conf` to include the `Security` log channel formatted as `eventchannel`, test endpoint-to-manager connectivity over **TCP Port 1514** using `Test-NetConnection`, and restart the `WazuhSvc` service to initiate log streaming.
+4. **Establish the Wazuh SIEM telemetry pipeline** by deploying the Wazuh Windows Agent on DC-01. Modify C:\Program Files (x86)\ossec-agent\ossec.conf to include the Security log channel formatted as `eventchannel, test endpoint-to-manager connectivity over TCP Port 1514 using Test-NetConnection, and restart the WazuhSvc service to initiate log streaming.
 
-5. **Generate and validate Active Directory security telemetry** by executing test user management operations on DC-01 using PowerShell (`New-ADUser` and `Remove-ADUser`). Log into the Wazuh Dashboard under **Threat Hunting → Events** to verify the ingestion of Windows Security Event IDs `4720` (User Account Created), `4726` (User Account Deleted), and `4728` (Member Added to Security-Enabled Global Group).
+5. **Generate and validate Active Directory security telemetry** by executing test user management operations on DC-01 using PowerShell (New-ADUser and Remove-ADUser). Log into the Wazuh Dashboard under Threat Hunting → Events to verify the ingestion of Windows Security Event IDs 4720 (User Account Created), 4726 (User Account Deleted), and 4728 (Member Added to Security-Enabled Global Group).
 
-6. **Engineer custom Wazuh detection rules** by editing `/var/ossec/etc/rules/local_rules.xml` on the Wazuh Manager. Write custom **Rule 100010** set to Level 12 severity targeting Event ID `4728` where `targetUserName` equals `Domain Admins`, map the alert to **MITRE ATT&CK T1078 (Valid Accounts)**, and restart the manager via `sudo wazuh-control restart`.
+6. **Engineer custom Wazuh detection rules** by editing /var/ossec/etc/rules/local_rules.xml on the Wazuh Manager. Write custom Rule 100010 set to Level 12 severity targeting Event ID 4728 where targetUserName equals Domain Admins, map the alert to MITRE ATT&CK T1078 (Valid Accounts), and restart the manager via sudo wazuh-control restart.
 
-7. **Validate detection pipeline and preserve lab state** by generating an alert-triggering event on DC-01 (adding a test account to the Domain Admins group) and confirming real-time alert generation in the Wazuh Dashboard. Gracefully shut down all virtual machines and take a clean VirtualBox state snapshot named `DC-01-Hardened-Monitored` for future threat-simulation exercises.
+7. **Validate detection pipeline and preserve lab state** by generating an alert-triggering event on DC-01 (adding a test account to the Domain Admins group) and confirming real-time alert generation in the Wazuh Dashboard. Gracefully shut down all virtual machines and take a clean VirtualBox state snapshot named DC-01-Hardened-Monitored for future threat-simulation exercises.
 
 8. **Build comprehensive technical documentation** detailing the end-to-end security pipeline flow (AD DS → Windows Auditpol → Wazuh Agent → Wazuh Manager → Custom Rule → SIEM Alert). Compile an Evidence Gallery referencing configuration screenshots, map all key Event IDs, explain troubleshooting workflows (such as VM time synchronization), and publish the complete portfolio write-up to GitHub.
 
 ## Key Concepts to Learn
 - Active Directory baseline security & GPO enforcement
 - Protected Users group mechanics & Kerberos authentication
-- Windows Advanced Audit Policy configuration (`auditpol`)
+- Windows Advanced Audit Policy configuration (auditpol)
 - Endpoint log forwarding & SIEM telemetry pipelines (TCP 1514)
-- Custom XML detection engineering in Wazuh (`local_rules.xml`)
+- Custom XML detection engineering in Wazuh (local_rules.xml)
 - MITRE ATT&CK framework mapping (Technique T1078)
 - Virtualization environment management & state snapshots
 
@@ -45,13 +45,13 @@ Build an isolated Active Directory domain environment, implement baseline GPO se
 
 | Ref | Verification Artifact | Key Telemetry / Configuration | Preview |
 | :---: | :--- | :--- | :---: |
-| **01** | **GPO Hardening Baseline** | Enforced `10 / 15 / 15` Account Lockout Policy | ![Account Lockout Policy](screenshots/01-account-lockout-policy.png) |
-| **02** | **Account Protection** | Privileged accounts (`dtorres`, `esingh`) in Protected Users | ![Protected Users](screenshots/02-protected-users.png) |
-| **03** | **Advanced Audit Policy** | Enabled Success/Failure auditing via `auditpol` | ![Audit Policy](screenshots/03-audit-policy.png) |
+| **01** | **GPO Hardening Baseline** | Enforced Account Lockout Policy | ![Account Lockout Policy](screenshots/01-account-lockout-policy.png) |
+| **02** | **Account Protection** | Privileged accounts (dtorres, esingh) in Protected Users | ![Protected Users](screenshots/02-protected-users.png) |
+| **03** | **Advanced Audit Policy** | Enabled Success/Failure auditing via auditpol| ![Audit Policy](screenshots/03-audit-policy.png) |
 | **04** | **SIEM Telemetry Pipeline** | Wazuh Windows Agent active connection over TCP 1514 | ![Wazuh Agent Status](screenshots/04-agent-status.png) |
-| **05** | **Log Ingestion Validation** | Captured Windows Event IDs `4720` and `4726` | ![Log Ingestion Validation](screenshots/05-log-ingestion.png) |
-| **06** | **Custom Detection Rule** | Level 12 Wazuh Rule `100010` in `local_rules.xml` | ![Local Rules XML](screenshots/06-local-rules-xml.png) |
-| **07** | **Lab State Preservation** | VirtualBox baseline snapshot (`DC-01-Hardened-Monitored`) | ![VirtualBox Snapshot](screenshots/07-vm-snapshot.png) |
+| **05** | **Log Ingestion Validation** | Captured Windows Event IDs 4720 and 4726 | ![Log Ingestion Validation](screenshots/05-log-ingestion.png) |
+| **06** | **Custom Detection Rule** | Level 12 Wazuh Rule 100010 in local_rules.xml | ![Local Rules XML](screenshots/06-local-rules-xml.png) |
+| **07** | **Lab State Preservation** | VirtualBox baseline snapshot (DC-01-Hardened-Monitored) | ![VirtualBox Snapshot](screenshots/07-vm-snapshot.png) |
 ---
 
 ## 👤 Author
