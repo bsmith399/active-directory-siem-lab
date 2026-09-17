@@ -1,94 +1,50 @@
-### Project 1: Project 1: Multi-OS SOC Home Lab 
+# 🛡️ Active Directory Hardening & Custom SIEM Detection Engineering
 
-### 🎯 Project Objectives
+## Overview
+Build an isolated Active Directory domain environment, implement baseline GPO security hardening and Protected Users account isolation, configure Windows Advanced Audit Policies, forward security event telemetry to a central Wazuh SIEM, and engineer custom detection rules for unauthorized privilege escalation mapped to the MITRE ATT&CK framework. This project teaches identity security controls, audit policy configuration, SIEM log ingestion, custom XML detection engineering, and SOC telemetry validation.
 
-The core objective of this project is to build a functional, isolated enterprise-style laboratory network to engineer and validate a robust **SIEM and Threat Detection Pipeline**.
+## Step-by-Step Instructions
 
-This lab was designed to meet the following specific technical goals:
-1.  **Isolate** a multi-vendor environment within Oracle VirtualBox (Windows 11, Server 2022, Ubuntu, Kali Linux).
-2.  **Engineer** a centralized security telemetry pipeline using Wazuh Manager and lightweight agents with Sysmon integration.
-3.  **Simulate** real-world malicious activity (credential attacks, port scanning) using Kali Linux against the target domain.
-4.  **Analyze** security logs and domain authentication events to validate detection capabilities and alert accuracy.
+1. **Set up the virtual lab environment and domain architecture** by configuring host-only and NAT network adapters in Oracle VM VirtualBox for a `192.168.1.0/24` subnet. Install Windows Server 2022 on **DC-01** to promote it as a Domain Controller running Active Directory Domain Services (AD DS), and set up Kali Linux to host the centralized Wazuh SIEM stack (Wazuh Manager, Indexer, and Dashboard).
 
-### 🧠 **Skills Learned & Applied**
+2. **Implement Active Directory security hardening baselines** by launching the Group Policy Management Console (`gpmc.msc`) on DC-01 and enforcing a `10 / 15 / 15` Account Lockout Policy (10 invalid attempts, 15-minute duration, 15-minute reset). Open Active Directory Users and Computers (`dsa.msc`) and add privileged administrative accounts (`dtorres`, `esingh`) to the **Protected Users** security group to eliminate legacy NTLM fallback and cached credential dumping risks.
 
-Through this project, I demonstrated and validated technical proficiency in the following domains:
+3. **Configure Windows Advanced Audit Policies** using administrative PowerShell on DC-01. Execute `auditpol /set /subcategory:"User Account Management" /success:enable /failure:enable` to capture identity lifecycle operations, and run `auditpol /get /category:*` to verify that active auditing is successfully enabled across user management categories.
 
-*   **SIEM Design & Implementation:** Deployed and engineered a Wazuh Central Manager pipeline on Ubuntu to collect and correlate log telemetry from multi-vendor hosts.
-*   **Windows & Active Directory Administration:** Built and administered a simulated Windows domain environment (Windows Server 2022 and Windows 11 clients) to replicate enterprise monitoring challenges.
-*   **Vulnerability Assessment & Attack Simulation:** Utilized Kali Linux utilities (including Nmap and Hydra) to perform controlled network scans and brute-force testing to validate detection visibility.
-*   **Telemetry Tuning (Sysmon & Event Logs):** Engineered enhanced endpoint visibility by deploying Sysmon and customizing Windows Event Log auditing policies for high-value authentication events (e.g., Event IDs 4624/4625).
+4. **Establish the Wazuh SIEM telemetry pipeline** by deploying the Wazuh Windows Agent on DC-01. Modify `C:\Program Files (x86)\ossec-agent\ossec.conf` to include the `Security` log channel formatted as `eventchannel`, test endpoint-to-manager connectivity over **TCP Port 1514** using `Test-NetConnection`, and restart the `WazuhSvc` service to initiate log streaming.
 
-  ### **🛠️ Tools Used**
-*   **Virtualization:** Oracle VM VirtualBox
-*   **Offensive Security:** Kali Linux, Nmap, Hydra
-*   **Defensive Security/SIEM:** Wazuh Manager (Ubuntu), Wazuh Agent, Sysmon
-*   **Operating Systems:** Windows 11, Windows Server 2022, Ubuntu, Kali Linux
+5. **Generate and validate Active Directory security telemetry** by executing test user management operations on DC-01 using PowerShell (`New-ADUser` and `Remove-ADUser`). Log into the Wazuh Dashboard under **Threat Hunting → Events** to verify the ingestion of Windows Security Event IDs `4720` (User Account Created), `4726` (User Account Deleted), and `4728` (Member Added to Security-Enabled Global Group).
 
- **Architecture Diagram:**
+6. **Engineer custom Wazuh detection rules** by editing `/var/ossec/etc/rules/local_rules.xml` on the Wazuh Manager. Write custom **Rule 100010** set to Level 12 severity targeting Event ID `4728` where `targetUserName` equals `Domain Admins`, map the alert to **MITRE ATT&CK T1078 (Valid Accounts)**, and restart the manager via `sudo wazuh-control restart`.
 
-```text
-+---------------------------------------------------------------------------------------------------+
-|                                  ORACLE VM VIRTUALBOX HOST ENVIRONMENT                            |
-|                               (Host-Only / NAT Virtual Subnet: 192.168.1.0/24)                    |
-+---------------------------------------------------------------------------------------------------+
-                                                  |
-       +-------------------------+----------------+-------------------------+
-       |                         |                                          |
-       v                         v                                          v
-+------------------+     +-------------------+                      +-------------------+
-|       kali       |     |      Ubuntu       |                      |    Windows111     |
-|   (Kali Linux)   |     |  (Ubuntu Linux)   |                      |    (Windows 11)   |
-|                  |     |                   |                      |                   |
-|  * Attacker Box  |     |  * SIEM Engine    |                      |  * Client Host    |
-|  * Threat Sim    |     |  * Wazuh Manager  |                      |  * Sysmon Active  |
-|  * Port Scans    |     |  * Dashboard      |                      |  * Wazuh Agent    |
-+------------------+     +-------------------+                      +-------------------+
-        |                          ^                                          ^
-        |                          |                                          |
-        |  [Attack Telemetry]      |         [Encrypted Log Stream]           |
-        +--------------------------|------------------------------------------+
-        |  (Hydra / Nmap Probes)   |         (Ports 1514 / 1515)
-        |                          |
-        v                          |         [Encrypted Log Stream]
-+------------------+               |         (Event IDs 4624/4625)
-|    Server2022    |               |
-| (Win Server 22)  |               |
-|                  |               |
-|  * Domain Ctrl   |---------------+
-|  * Active Dir.   |
-|  * Wazuh Agent   |
-+------------------+
-```
+7. **Validate detection pipeline and preserve lab state** by generating an alert-triggering event on DC-01 (adding a test account to the Domain Admins group) and confirming real-time alert generation in the Wazuh Dashboard. Gracefully shut down all virtual machines and take a clean VirtualBox state snapshot named `DC-01-Hardened-Monitored` for future threat-simulation exercises.
 
-#### 🖥️ Virtual Environment Breakdown
-* **`Ubuntu` (SIEM Engine & Workstation):** Runs Wazuh Manager to collect, correlate, and parse log telemetry from all networked endpoints.
-* **`Server2022` (Active Directory Domain Controller):** Configured with AD DS, Group Policy (GPO), and advanced audit logging to capture authentication events (`Event ID 4624`/`4625`).
-* **`Windows111` (Target Client Endpoint):** Monitored workstation equipped with Sysmon and a Wazuh Agent forwarding endpoint process telemetry.
-* **`kali` (Attacker Machine):** Isolated testing host used to generate traffic, execute port scans, and simulate authentication brute-force attacks.
+8. **Build comprehensive technical documentation** detailing the end-to-end security pipeline flow (AD DS → Windows Auditpol → Wazuh Agent → Wazuh Manager → Custom Rule → SIEM Alert). Compile an Evidence Gallery referencing configuration screenshots, map all key Event IDs, explain troubleshooting workflows (such as VM time synchronization), and publish the complete portfolio write-up to GitHub.
 
-   # Detailed Implementation Steps: Setting Up the Home Lab
+## Key Concepts to Learn
+- Active Directory baseline security & GPO enforcement
+- Protected Users group mechanics & Kerberos authentication
+- Windows Advanced Audit Policy configuration (`auditpol`)
+- Endpoint log forwarding & SIEM telemetry pipelines (TCP 1514)
+- Custom XML detection engineering in Wazuh (`local_rules.xml`)
+- MITRE ATT&CK framework mapping (Technique T1078)
+- Virtualization environment management & state snapshots
 
-Here is the step-by-step process used to design and deploy the isolated, multi-OS enterprise environment in Oracle VM VirtualBox.
+## Deliverables
+- Isolated Active Directory domain & Wazuh SIEM lab environment
+- Enforced GPO Account Lockout Policy & Protected Users baseline
+- Configured Windows Security audit pipeline forwarding Event IDs 4720, 4726, & 4728
+- Custom Wazuh Rule 100010 detecting Domain Admin group modifications
+- Validated Level 12 SIEM alert mapped to MITRE ATT&CK T1078
+- VirtualBox baseline restoration snapshot (`DC-01-Hardened-Monitored`)
+- Professional GitHub portfolio repository with screenshot evidence gallery
 
-### Phase 1: Environment & Virtual Network Configuration
+---
 
-1.  **Virtualization Setup:** Installed Oracle VM VirtualBox as the hypervisor to host the entire lab environment locally.
-2.  **VM Provisioning:** Deployed all five required virtual guest machines (Kali, Ubuntu, Win Server 2022, Win 11). Ensured minimum hardware specifications were met to support simultaneous execution (minimum ~8GB RAM total overhead).
-3.  **Network Engineering:**
-    *   Configured an isolated, internal VirtualBox Network (Host-Only Adapter) to function as the "simulated enterprise internal network" (192.168.1.0/24). This contains all attack traffic within the lab.
-    *   Configured an optional NAT Adapter on the `Ubuntu` SIEM host only, allowing specific outbound internet access for package updates and initial Wazuh installation.
+## 👤 Author
 
-### Phase 2: Active Directory & Endpoint Configuration
+**Brandon Smith**  
+*Cybersecurity Analyst | Active Directory | SIEM | Detection Engineering*
 
-4.  **Domain Controller Setup:** Installed and configured Windows Server 2022 as a functional Active Directory Domain Controller (AD DS). Promoted the server to a new domain (e.g., `brandonsmith.lab`).
-5.  **Audit Policy Tuning:** Enabled advanced security auditing via Group Policy Object (GPO) to ensure crucial authentication events are logged to the Windows Security Log (specifically Event ID 4624/4625 for Logon/Failed Logon, 4672 for Privilege Use).
-6.  **Workstation Deployment:** Installed the Windows 11 target machine and joined it to the created Active Directory domain to simulate real-world client interaction and central policy management.
-7.  **Sysmon Deployment:** Installed Microsoft Sysmon on both Windows target machines (`Windows111` and `Server2022`) using a known modular configuration file (such as SwiftOnSecurity's config) to track detailed process creation and network connection telemetry.
-
-### Phase 3: Wazuh SIEM Deployment
-
-8.  **SIEM Manager Installation:** Installed and configured the Wazuh Manager engine on the specialized Ubuntu Virtual Machine. Verified the core services (Manager, Indexer, Dashboard) were operational.
-9.  **Agent Deployment:** Lightweight Wazuh agents were generated and installed on all target guest systems (`Windows111`, `Server2022`, and local agents on the `Ubuntu` host). Verify two-way connectivity via the Wazuh Dashboard over ports 1514 and 1515.
-10. **Telemetry Tuning:** Custom-tuned the `ossec.conf` file on the Windows agents to ingest and parse specific Sysmon operational logs and high-value Windows Event channels that are crucial for threat detection.
-
+- **Education & Credentials:** B.S. Cybersecurity | CompTIA Security+
+- **GitHub Portfolio:** [github.com/bsmith399/active-directory-siem-lab](https://github.com/bsmith399/active-directory-siem-lab)
