@@ -11,15 +11,11 @@ Build an isolated Active Directory domain environment, implement baseline GPO se
 
 3. **Configure Windows Advanced Audit Policies** using administrative PowerShell on DC-01. Execute auditpol /set /subcategory:"User Account Management" /success:enable /failure:enable to capture identity lifecycle operations, and run `auditpol /get /category: to verify that active auditing is successfully enabled across user management categories.
 
-4. **Establish the Wazuh SIEM telemetry pipeline** by deploying the Wazuh Windows Agent on DC-01. Modify C:\Program Files (x86)\ossec-agent\ossec.conf to include the Security log channel formatted as `eventchannel, test endpoint-to-manager connectivity over TCP Port 1514 using Test-NetConnection, and restart the WazuhSvc service to initiate log streaming.
+4. **Generate and validate Active Directory security telemetry** by executing test user management operations on DC-01 using PowerShell (New-ADUser and Remove-ADUser). Log into the Wazuh Dashboard under Threat Hunting → Events to verify the ingestion of Windows Security Event IDs 4720 (User Account Created), 4726 (User Account Deleted), and 4728 (Member Added to Security-Enabled Global Group).
 
-5. **Generate and validate Active Directory security telemetry** by executing test user management operations on DC-01 using PowerShell (New-ADUser and Remove-ADUser). Log into the Wazuh Dashboard under Threat Hunting → Events to verify the ingestion of Windows Security Event IDs 4720 (User Account Created), 4726 (User Account Deleted), and 4728 (Member Added to Security-Enabled Global Group).
+5. **Engineer custom Wazuh detection rules** by editing /var/ossec/etc/rules/local_rules.xml on the Wazuh Manager. Write custom Rule 100010 set to Level 12 severity targeting Event ID 4728 where targetUserName equals Domain Admins, map the alert to MITRE ATT&CK T1078 (Valid Accounts), and restart the manager via sudo wazuh-control restart.
 
-6. **Engineer custom Wazuh detection rules** by editing /var/ossec/etc/rules/local_rules.xml on the Wazuh Manager. Write custom Rule 100010 set to Level 12 severity targeting Event ID 4728 where targetUserName equals Domain Admins, map the alert to MITRE ATT&CK T1078 (Valid Accounts), and restart the manager via sudo wazuh-control restart.
-
-7. **Validate detection pipeline and preserve lab state** by generating an alert-triggering event on DC-01 (adding a test account to the Domain Admins group) and confirming real-time alert generation in the Wazuh Dashboard. Gracefully shut down all virtual machines and take a clean VirtualBox state snapshot named DC-01-Hardened-Monitored for future threat-simulation exercises.
-
-8. **Build comprehensive technical documentation** detailing the end-to-end security pipeline flow (AD DS → Windows Auditpol → Wazuh Agent → Wazuh Manager → Custom Rule → SIEM Alert). Compile an Evidence Gallery referencing configuration screenshots, map all key Event IDs, explain troubleshooting workflows (such as VM time synchronization), and publish the complete portfolio write-up to GitHub.
+6. **Validate detection pipeline and preserve lab state** by generating an alert-triggering event on DC-01 (adding a test account to the Domain Admins group) and confirming real-time alert generation in the Wazuh Dashboard. Gracefully shut down all virtual machines and take a clean VirtualBox state snapshot named DC-01-Hardened-Monitored for future threat-simulation exercises.
 
 ## Key Concepts to Learn
 - Active Directory baseline security & GPO enforcement
